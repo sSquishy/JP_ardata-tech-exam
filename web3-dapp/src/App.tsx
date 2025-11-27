@@ -12,7 +12,6 @@ interface Transaction {
   to: string | null
   value: string
   blockNumber: string
-  timestamp?: number
 }
 
 function App() {
@@ -22,12 +21,9 @@ function App() {
   const [balance, setBalance] = useState<string | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const [gasPrice, setGasPrice] = useState<string | null>(null);
-  const [blockNumber, setBlockNumber] = useState<string | null>(null);
+  const [gasPrice, setGasPrice] = useState<string | null>(null)
+  const [blockNumber, setBlockNumber] = useState<string | null>(null)
 
-  // -----------------------
-  // Connect wallet handler
-  // -----------------------
   const connectWallet = async () => {
     setIsConnecting(true)
     setError(null)
@@ -50,8 +46,14 @@ function App() {
 
       // Fetch transaction history
       setIsLoadingData(true)
-      const txs = await getTransactions(address, 'https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=YOURKEY') // just the API key
-      setTransactions(txs)
+      try {
+        const txs = await getTransactions(address)
+        setTransactions(txs)
+
+      } catch (txErr) {
+        console.error('Failed to fetch transactions:', txErr)
+        setTransactions([])
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect wallet')
@@ -60,7 +62,6 @@ function App() {
       setIsLoadingData(false)
     }
   }
-
 
   const disconnectWallet = () => {
     setWalletAddress(null)
