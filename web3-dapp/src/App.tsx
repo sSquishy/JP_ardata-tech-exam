@@ -74,52 +74,132 @@ function App() {
           <div className="login-content">
             {walletAddress ? (
               <div className="wallet-connected">
+                <div className="success-icon">✓</div>
                 <h2>Wallet Connected</h2>
-                <p>{walletAddress}</p>
-                <button onClick={disconnectWallet}>Disconnect Wallet</button>
+
+                <div className="wallet-address">
+                  <p className="address-label">Connected Address:</p>
+                  <p className="address-value">{walletAddress}</p>
+                </div>
+
+                <button className="btn btn-disconnect" onClick={disconnectWallet}>
+                  Disconnect Wallet
+                </button>
               </div>
             ) : (
-              <button onClick={connectWallet}>{isConnecting ? "Connecting..." : "Connect Wallet"}</button>
+              <div className="wallet-disconnected">
+                <div className="wallet-icon">🔐</div>
+                <p className="instruction-text">
+                  Click the button below to connect your Ethereum wallet.
+                </p>
+
+                <button
+                  className="btn btn-connect"
+                  onClick={connectWallet}
+                  disabled={isConnecting}
+                >
+                  {isConnecting ? "Connecting..." : "Connect Wallet"}
+                </button>
+              </div>
             )}
 
-            {error && <div className="error-message">{error}</div>}
+            {error && (
+              <div className="error-message">
+                <span className="error-icon">⚠</span>
+                {error}
+              </div>
+            )}
+          </div>
+
+          <div className="login-footer">
+            <p>Using MetaMask for secure authentication</p>
           </div>
         </div>
 
         {/* Dashboard */}
         {walletAddress && (
           <div className="dashboard-card">
-            <h2>Dashboard</h2>
-
-            <div className="info-section">
-              <div>Gas Price: {gasPrice ? `${gasPrice} Gwei` : "Loading..."}</div>
-              <div>Current Block: {blockNumber ?? "Loading..."}</div>
+            <div className="dashboard-header">
+              <h2>Dashboard</h2>
             </div>
 
-            <div>ETH Balance: {balance ? `${balance} ETH` : "Loading..."}</div>
-
-            <div className="transactions-section">
-              <h3>Recent Transactions</h3>
-              <button onClick={() => refreshTransactions()}>Refresh Transactions</button>
-
-              {isLoadingData ? (
-                <div>🔄 Loading transactions...</div>
-              ) : transactions.length > 0 ? (
-                <div className="transactions-list">
-                  {transactions.map((tx) => (
-                    <div key={tx.hash}>
-                      <div>Hash: {tx.hash}</div>
-                      <div>From: {tx.from}</div>
-                      <div>To: {tx.to || "Contract Creation"}</div>
-                      <div>Value: {parseFloat(tx.value).toFixed(6)} ETH</div>
-                      <div>Block: {tx.blockNumber}</div>
-                      <hr />
-                    </div>
-                  ))}
+            <div className="dashboard-content">
+              <div className="info-section">
+                <div className="info-card">
+                  <p className="info-label">Current Gas Price</p>
+                  <p className="info-value">{gasPrice ? `${gasPrice} Gwei` : "Loading..."}</p>
                 </div>
-              ) : (
-                <div>No transactions found</div>
-              )}
+                <div className="info-card">
+                  <p className="info-label">Current Block</p>
+                  <p className="info-value">{blockNumber ?? "Loading..."}</p>
+                </div>
+              </div>
+
+              <div className="balance-section">
+                <div className="balance-label">ETH Balance</div>
+                <div className="balance-value">{balance ? `${balance} ETH` : "Loading..."}</div>
+              </div>
+
+              <div className="transactions-section">
+                <div className="transactions-header">
+                  <h3>Recent Transactions</h3>
+                  <button
+                    className={`btn btn-refresh ${isLoadingData ? "loading" : ""}`}
+                    onClick={() => refreshTransactions()}
+                    disabled={isLoadingData}
+                    title={isLoadingData ? "Loading..." : "Refresh Transactions"}
+                  >
+                    🔄
+                  </button>
+                </div>
+
+                {isLoadingData ? (
+                  <div className="loading-message">
+                    🔄 Loading transactions...
+                    <small>Fetching latest transactions</small>
+                  </div>
+                ) : transactions.length > 0 ? (
+                  <div className="transactions-list">
+                    {transactions.map((tx, index) => (
+                      <div key={`${tx.hash}-${index}`} className="transaction-item">
+                        <div className="tx-row">
+                          <span className="tx-label">Txn Hash:</span>
+                          <span className="tx-value" title={tx.hash}>
+                            {tx.hash.substring(0, 10)}...{tx.hash.substring(tx.hash.length - 8)}
+                          </span>
+                        </div>
+                        <div className="tx-row">
+                          <span className="tx-label">From:</span>
+                          <span className="tx-value" title={tx.from}>
+                            {tx.from.substring(0, 8)}...{tx.from.substring(tx.from.length - 6)}
+                          </span>
+                        </div>
+                        <div className="tx-row">
+                          <span className="tx-label">To:</span>
+                          <span className="tx-value" title={tx.to || "Contract Creation"}>
+                            {tx.to ? `${tx.to.substring(0, 8)}...${tx.to.substring(tx.to.length - 6)}` : "Contract Creation"}
+                          </span>
+                        </div>
+                        <div className="tx-row">
+                          <span className="tx-label">Value:</span>
+                          <span className={`tx-amount ${parseFloat(tx.value) > 0 ? "tx-incoming" : "tx-outgoing"}`}>
+                            {parseFloat(tx.value).toFixed(6)} ETH
+                          </span>
+                        </div>
+                        <div className="tx-row">
+                          <span className="tx-label">Block:</span>
+                          <span className="tx-value">#{tx.blockNumber}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-transactions">
+                    <div>📭 No transactions found</div>
+                    <small>This address doesn't have any transactions yet</small>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

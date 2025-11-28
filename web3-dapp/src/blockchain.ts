@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
 
+const ALCHEMY_KEY = "PzVM39rbazQkvROnR6Atj"; // replace with your Sepolia key
+
 // Add proper window.ethereum type declaration
 declare global {
   interface Window {
@@ -52,36 +54,42 @@ export type SimpleTx = {
   blockNumber: string;
 };
 
-/** Fetch last 10 transactions (mock data for Tier 1) */
+/** Fetch last 10 transactions from Alchemy Sepolia */
 export async function getTransactions(address: string): Promise<SimpleTx[]> {
-  // For Tier 1, return mock data
-  return getMockTransactions(address);
-}
+  const url = `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`;
+  const data = {
+    id: 1,
+    jsonrpc: "2.0",
+    method: "alchemy_getAssetTransfers",
+    params: [
+      {
+        fromAddress: address,
+        category: ["external", "internal", "erc20", "erc721"],
+        maxCount: "0xA", // last 10 transactions
+      },
+    ],
+  };
 
-/** Fallback mock data for testing */
-function getMockTransactions(address: string): SimpleTx[] {
-  console.log('🔄 Using mock transactions data');
-  return [
-    {
-      hash: `0x1a2b3c4d5e6f...${Date.now().toString(16)}`,
-      from: address,
-      to: '0x742d...44e',
-      value: '0.0015',
-      blockNumber: '18945678',
-    },
-    {
-      hash: `0x2b3c4d5e6f...${(Date.now() + 1).toString(16)}`,
-      from: '0x742d...44e',
-      to: address,
-      value: '0.0250',
-      blockNumber: '18945672',
-    },
-    {
-      hash: `0x3c4d5e6f...${(Date.now() + 2).toString(16)}`,
-      from: address,
-      to: null,
-      value: '0.0000',
-      blockNumber: '18945665',
-    },
-  ];
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const json = await res.json();
+
+    if (!json.result || !json.result.transfers) return [];
+
+    return json.result.transfers.map((tx: any): SimpleTx => ({
+      hash: tx.hash,
+      from: tx.from,
+      to: tx.to || null,
+      value: (tx.value ? Number(tx.value) / 1e18 : 0).toString(),
+      blockNumber: parseInt(tx.blockNum, 16).toString(),
+    }));
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    return [];
+  }
 }

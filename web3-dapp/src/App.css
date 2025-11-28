@@ -503,3 +503,42 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
   transform: translateY(-1px);
 }
+
+.btn-refresh {
+  background: #2a2a4e;
+  color: #ffffff;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #667eea;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.btn-refresh.loading {
+  animation: spin 1s linear infinite;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
