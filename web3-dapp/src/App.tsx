@@ -25,7 +25,7 @@ function App() {
       setBalance(userBalance);
 
       const gas = await window.ethereum?.request({ method: "eth_gasPrice" });
-      if (gas) setGasPrice((parseInt(gas as string, 16) / 1e9).toFixed(2));
+      if (gas) setGasPrice((parseInt(gas as string, 16) / 1e9).toFixed(7));
 
       const block = await window.ethereum?.request({ method: "eth_blockNumber" });
       if (block) setBlockNumber(parseInt(block as string, 16).toString());

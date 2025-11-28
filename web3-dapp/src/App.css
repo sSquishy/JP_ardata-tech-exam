@@ -16,7 +16,7 @@
   display: flex;
   gap: 2rem;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center; /* vertically center login card next to dashboard */
   flex-wrap: wrap;
 }
 
