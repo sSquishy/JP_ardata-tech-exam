@@ -31,6 +31,7 @@ function App() {
     try {
       const address = await connectWalletHelper()
       setWalletAddress(address)
+      console.log('✅ Wallet connected:', address)
 
       // Get balance
       const userBalance = await getBalance(address)
@@ -38,7 +39,7 @@ function App() {
 
       // Fetch Gas Price
       const gas = await window.ethereum?.request({ method: 'eth_gasPrice' })
-      if (gas) setGasPrice((parseInt(gas as string, 16) / 1e9).toFixed(2)) // Gwei
+      if (gas) setGasPrice((parseInt(gas as string, 16) / 1e9).toFixed(2))
 
       // Fetch Current Block Number
       const block = await window.ethereum?.request({ method: 'eth_blockNumber' })
@@ -46,16 +47,19 @@ function App() {
 
       // Fetch transaction history
       setIsLoadingData(true)
+      console.log('🔄 Fetching transactions for:', address)
+      
       try {
         const txs = await getTransactions(address)
+        console.log('📈 Transactions loaded:', txs.length, 'transactions')
         setTransactions(txs)
-
       } catch (txErr) {
         console.error('Failed to fetch transactions:', txErr)
         setTransactions([])
       }
 
     } catch (err) {
+      console.error('❌ Wallet connection error:', err)
       setError(err instanceof Error ? err.message : 'Failed to connect wallet')
     } finally {
       setIsConnecting(false)
@@ -162,46 +166,62 @@ function App() {
 
                 {isLoadingData ? (
                   <div className="loading-message">
-                    Loading transactions...
+                    <div>🔄 Loading transactions...</div>
+                    <small>Fetching from Etherscan API</small>
                   </div>
                 ) : transactions.length > 0 ? (
                   <div className="transactions-list">
                     {transactions.map((tx, index) => (
-                      <div key={index} className="transaction-item">
-                        <div className="tx-hash">
-                          <span className="tx-label">Hash:</span>
+                      <div key={`${tx.hash}-${index}`} className="transaction-item">
+                        <div className="tx-row">
+                          <span className="tx-label">Txn Hash:</span>
                           <span className="tx-value" title={tx.hash}>
-                            {tx.hash.substring(0, 10)}...
-                            {tx.hash.substring(tx.hash.length - 8)}
+                            {tx.hash.substring(0, 10)}...{tx.hash.substring(tx.hash.length - 8)}
                           </span>
                         </div>
-
-                        <div className="tx-details">
+                        
+                        <div className="tx-row">
                           <span className="tx-label">From:</span>
                           <span className="tx-value" title={tx.from}>
-                            {tx.from.substring(0, 8)}...
+                            {tx.from.substring(0, 8)}...{tx.from.substring(tx.from.length - 6)}
                           </span>
                         </div>
-
-                        <div className="tx-details">
+                        
+                        <div className="tx-row">
                           <span className="tx-label">To:</span>
-                          <span className="tx-value" title={tx.to || 'N/A'}>
-                            {tx.to
-                              ? `${tx.to.substring(0, 8)}...`
-                              : 'Contract Creation'}
+                          <span className="tx-value" title={tx.to || 'Contract Creation'}>
+                            {tx.to 
+                              ? `${tx.to.substring(0, 8)}...${tx.to.substring(tx.to.length - 6)}`
+                              : 'Contract Creation'
+                            }
+                          </span>
+                        </div>
+                        
+                        <div className="tx-row">
+                          <span className="tx-label">Value:</span>
+                          <span className={`tx-amount ${parseFloat(tx.value) > 0 ? 'tx-incoming' : 'tx-outgoing'}`}>
+                            {parseFloat(tx.value).toFixed(6)} ETH
                           </span>
                         </div>
 
-                        <div className="tx-value-amount">
-                          <span className="tx-label">Value:</span>
-                          <span className="tx-amount">{tx.value} ETH</span>
+                        <div className="tx-row">
+                          <span className="tx-label">Block:</span>
+                          <span className="tx-value">
+                            #{tx.blockNumber}
+                          </span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="no-transactions">
-                    No transactions found
+                    <div>📭 No transactions found</div>
+                    <small>
+                      {walletAddress 
+                        ? "This address doesn't have any transactions yet"
+                        : "Connect your wallet to view transactions"
+                      }
+                    </small>
                   </div>
                 )}
               </div>
